@@ -2,7 +2,22 @@ import pandas as pd
 
 # Load the Excel file
 file_path = "C:/Users/Rameysh/Documents/file/attendance.xlsx"
-df = pd.read_excel(file_path)
+raw_df = pd.read_excel(file_path, header=None)  # Load without header
+
+# Find the row that contains the column names
+def find_header_row(df):
+    for i, row in df.iterrows():
+        if 'Unique Id' in row.values:
+            return i
+    return None
+
+header_row_index = find_header_row(raw_df)
+
+if header_row_index is None:
+    raise ValueError("Header row not found. Make sure the file contains a row with 'Unique Id'.")
+
+# Load the DataFrame with the identified header row
+df = pd.read_excel(file_path, header=header_row_index)
 
 # Strip whitespace from the column names
 df.columns = df.columns.str.strip()
@@ -14,6 +29,9 @@ for col in df.columns:
 
 # Function to search by Unique ID and select a column to return
 def search_by_unique_id(unique_id):
+    if 'Unique Id' not in df.columns:
+        return "Error: 'Unique Id' column not found in the DataFrame."
+
     result = df[df['Unique Id'] == unique_id]
     if not result.empty:
         while True:
